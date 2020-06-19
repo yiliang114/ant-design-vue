@@ -92,11 +92,14 @@ const getSlotOptions = ele => {
   return componentOptions ? componentOptions.Ctor.options || {} : {};
 };
 const getOptionProps = instance => {
+  // componentOptions 经过编译之后的属性 ？
   if (instance.componentOptions) {
     const componentOptions = instance.componentOptions;
+    // TODO: 从构造函数（或者是继承的类）上去获取 props ， propsData 是什么属性
     const { propsData = {}, Ctor = {} } = componentOptions;
     const props = (Ctor.options || {}).props || {};
     const res = {};
+    // Object.entries() 返回一个数组，其元素是与直接在object上找到的可枚举属性键值对相对应的数组。属性的顺序与通过手动循环对象的属性值所给出的顺序相同。
     for (const [k, v] of Object.entries(props)) {
       const def = v.default;
       if (def !== undefined) {
@@ -106,6 +109,7 @@ const getOptionProps = instance => {
     }
     return { ...res, ...propsData };
   }
+  // $options 与 componentOptions 有什么区别 ？
   const { $options = {}, $props = {} } = instance;
   return filterProps($props, $options.propsData);
 };

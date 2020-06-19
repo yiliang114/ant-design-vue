@@ -83,6 +83,7 @@ const ConfigProvider = {
 };
 
 export const ConfigConsumerProps = {
+  // 获取前缀，一般用于 css 的组件库名
   getPrefixCls: (suffixCls, customizePrefixCls) => {
     if (customizePrefixCls) return customizePrefixCls;
     return `ant-${suffixCls}`;

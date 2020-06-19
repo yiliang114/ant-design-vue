@@ -1,11 +1,15 @@
 /* eslint-disable camelcase */
-import shallowequal from 'shallowequal';
+import shallowequal from 'shallowequal'; // 属性很多的对象，进行浅比较
 import merge from 'lodash/merge';
+// TODO: 这两个有什么区别
 import classes from 'component-classes';
 import classNames from 'classnames';
+// 主要用于类型的初始化
 import PropTypes from '../../_util/vue-types';
+// 自己写的一个防抖函数
 import { debounce } from './utils';
 import warning from '../../_util/warning';
+// addDOMEventListener
 import addEventListener from '../../vc-util/Dom/addEventListener';
 import { Provider, create } from '../../_util/store';
 import ColumnManager from './ColumnManager';

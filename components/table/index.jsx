@@ -1,5 +1,7 @@
 import T from './Table';
+// 像 react 一样可以使用回调指定 ref
 import ref from 'vue-ref';
+// 直接在 devDependencies 给 vue 和 vuex 会不会有问题的 ？ 当然不是在 dependencies
 import Vue from 'vue';
 import {
   getOptionProps,
@@ -18,10 +20,12 @@ Vue.use(ref, { name: 'ant-ref' });
 
 const Table = {
   name: 'ATable',
+  // 这两个属性不会被编译，只是用于外部扩展
   Column: T.Column,
   ColumnGroup: T.ColumnGroup,
   props: T.props,
   methods: {
+    // 标准化
     normalize(elements = []) {
       const columns = [];
       elements.forEach(element => {
@@ -54,11 +58,14 @@ const Table = {
       });
       return columns;
     },
+
     updateColumns(cols = []) {
       const columns = [];
       const { $slots, $scopedSlots } = this;
       cols.forEach(col => {
+        // slots 与 scopedSlots 是为了渲染而多加的属性。
         const { slots = {}, scopedSlots = {}, ...restProps } = col;
+        // 剩余的属性都是正常 table 所需的属性
         const column = {
           ...restProps,
         };
@@ -71,6 +78,7 @@ const Table = {
         Object.keys(scopedSlots).forEach(key => {
           const name = scopedSlots[key];
           if (column[key] === undefined && $scopedSlots[name]) {
+            // 获取到作用域插槽函数
             column[key] = $scopedSlots[name];
           }
         });
@@ -87,6 +95,7 @@ const Table = {
   },
   render() {
     const { $slots, normalize, $scopedSlots } = this;
+    // 获取全部的 props
     const props = getOptionProps(this);
     const columns = props.columns ? this.updateColumns(props.columns) : normalize($slots.default);
     let { title, footer } = props;

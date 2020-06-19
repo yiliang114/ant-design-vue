@@ -72,6 +72,7 @@ const createComponents = (components = {}) => {
     ...components,
     body: {
       ...components.body,
+      // row 是一个组件的构造函数。 bodyRow 没有的话，默认是 tr 标签。
       row: createBodyRow(bodyRow),
     },
   };
@@ -112,21 +113,32 @@ export default {
   Column,
   ColumnGroup,
   mixins: [BaseMixin],
+  // 初始化 props 类型，同时给了部分的属性
   props: initDefaultProps(TableProps, {
+    // 数据数组
     dataSource: [],
+    // TODO: 文档中没有
     useFixedHeader: false,
     // rowSelection: null,
     size: 'default',
+    // 加载中
     loading: false,
+    // 是否有 border
     bordered: false,
+    // 展示树形数据时，每层缩进的宽度，以 px 为单位
     indentSize: 20,
+    // 默认文案设置，目前包括排序、过滤、空数据文案。 区域设置
     locale: {},
+    // TODO: 表格行 key 的取值，可以是字符串或一个函数
     rowKey: 'key',
+    // 是否显示表格头部
     showHeader: true,
+    // 支持的排序方式，取值为 'ascend' 'descend'
     sortDirections: ['ascend', 'descend'],
+    // 指定树形结构的列名
     childrenColumnName: 'children',
   }),
-
+  // 注入配置项
   inject: {
     configProvider: { default: () => ConfigConsumerProps },
   },
@@ -147,6 +159,7 @@ export default {
     this.CheckboxPropsCache = {};
 
     this.store = createStore({
+      // this.$props 当前组件接收到的 props 对象。Vue 实例代理了对其 props 对象 property 的访问。
       selectedRowKeys: getRowSelection(this.$props).selectedRowKeys || [],
       selectionDirty: false,
     });
@@ -157,11 +170,12 @@ export default {
       sPagination: this.getDefaultPagination(this.$props),
       pivot: undefined,
       sComponents: createComponents(this.components),
-      filterDataCnt: 0
+      filterDataCnt: 0,
     };
   },
   watch: {
     pagination: {
+      // 深度观察翻页组件属性
       handler(val) {
         this.setState(previousState => {
           const newPagination = {
@@ -176,6 +190,7 @@ export default {
       },
       deep: true,
     },
+    // 列表项是否可选择
     rowSelection: {
       handler(val, oldVal) {
         if (val && 'selectedRowKeys' in val) {
@@ -360,12 +375,14 @@ export default {
     },
 
     getSorterFn(state) {
+      // sortOrder 排序的受控属性，外界可用此控制列的排序，可设置为 'ascend' 'descend' false
       const { sSortOrder: sortOrder, sSortColumn: sortColumn } = state || this.$data;
       if (!sortOrder || !sortColumn || typeof sortColumn.sorter !== 'function') {
         return;
       }
 
       return (a, b) => {
+        // sorter 排序函数
         const result = sortColumn.sorter(a, b, sortOrder);
         if (result !== 0) {
           return sortOrder === 'descend' ? -result : result;
@@ -373,9 +390,11 @@ export default {
         return 0;
       };
     },
-
+    // 获取当前页的数据， 根据分页器属性，对 data 进行切割
     getCurrentPageData() {
+      // 首先对数据进行排序、筛选处理
       let data = this.getLocalData();
+      // FIXME: 下面直接可以使用 filterDataCnt 属性
       this.filterDataCnt = data.length;
       let current;
       let pageSize;
@@ -386,6 +405,7 @@ export default {
         current = 1;
       } else {
         pageSize = sPagination.pageSize;
+        // 如果没有给分页器 total 值的话，默认会取 data 的总长度
         current = this.getMaxCurrent(sPagination.total || data.length);
       }
 
@@ -393,6 +413,7 @@ export default {
       // ---
       // 当数据量少于等于每页数量时，直接设置数据
       // 否则进行读取分页数据
+      // FIXME: hasPagination 是 false 的情况，不需要进行是 slice data 吧
       if (data.length > pageSize || pageSize === Number.MAX_VALUE) {
         data = data.slice((current - 1) * pageSize, current * pageSize);
       }
@@ -410,16 +431,21 @@ export default {
     },
 
     getLocalData(state, filter = true) {
+      // options 中传入的整个 data 对象，因为这里有可能会是一个函数，值就是返回的对象。
+      // $data 主要是一些内部的属性，用于维护自身的状态的。
       const currentState = state || this.$data;
       const { sFilters: filters } = currentState;
+      // table 渲染所需的数据
       const { dataSource } = this.$props;
       let data = dataSource || [];
       // 优化本地排序
-      data = data.slice(0);
+      data = data.slice(0); // TODO: ????
       const sorterFn = this.getSorterFn(currentState);
+      // 有排序函数的话，需要先对数据中的 children 值排好序
       if (sorterFn) {
         // 使用新数组，避免改变原数组导致无限循环更新
         // https://github.com/vueComponent/ant-design-vue/issues/2270
+        // 递归排序。
         data = this.recursiveSort([...data], sorterFn);
       }
       // 筛选
@@ -882,8 +908,9 @@ export default {
       });
       return column;
     },
-
+    // 递归排序。 排序 children. 如果是简单的表格，就不会有排序的作用。
     recursiveSort(data, sorterFn) {
+      // 子元素的属性名。默认是 children
       const { childrenColumnName = 'children' } = this;
       return data.sort(sorterFn).map(item =>
         item[childrenColumnName]
@@ -1239,6 +1266,7 @@ export default {
     const {
       prefixCls: customizePrefixCls,
       dropdownPrefixCls: customizeDropdownPrefixCls,
+      // 自定义的渲染函数
       transformCellText: customizeTransformCellText,
     } = this;
     const data = this.getCurrentPageData();
@@ -1247,8 +1275,10 @@ export default {
       transformCellText: tct,
     } = this.configProvider;
     const getPopupContainer = this.getPopupContainer || getContextPopupContainer;
+    // 自定义的渲染函数
     const transformCellText = customizeTransformCellText || tct;
     let loading = this.loading;
+    // FIXME: 收拢到属性中判断
     if (typeof loading === 'boolean') {
       loading = {
         props: {
@@ -1289,6 +1319,7 @@ export default {
       this.hasPagination() && data && data.length !== 0
         ? `${prefixCls}-with-pagination`
         : `${prefixCls}-without-pagination`;
+    // 给 loading 添加
     const spinProps = {
       ...loading,
       class:
@@ -1299,6 +1330,7 @@ export default {
     return (
       <div class={classNames(`${prefixCls}-wrapper`)}>
         <Spin {...spinProps}>
+          {/* TODO: 为啥有两个分页器 */}
           {this.renderPagination(prefixCls, 'top')}
           {table}
           {this.renderPagination(prefixCls, 'bottom')}

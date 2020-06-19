@@ -9,6 +9,7 @@ const BodyRowProps = {
   prefixCls: PropTypes.string,
 };
 
+// BodyRow 组件
 export default function createBodyRow(Component = 'tr') {
   const BodyRow = {
     name: 'BodyRow',
@@ -26,6 +27,7 @@ export default function createBodyRow(Component = 'tr') {
     },
 
     beforeDestroy() {
+      // 取消订阅操作
       if (this.unsubscribe) {
         this.unsubscribe();
       }
@@ -49,6 +51,7 @@ export default function createBodyRow(Component = 'tr') {
       };
 
       return (
+        // getListeners 获取 dom 上的所有事件监听器
         <Component class={className} {...{ on: getListeners(this) }}>
           {this.$slots.default}
         </Component>

@@ -14,6 +14,7 @@ import {
   getListeners,
 } from '../_util/props-util';
 import { INTERNAL_COL_DEFINE } from './src/utils';
+
 const Table = {
   name: 'Table',
   Column,

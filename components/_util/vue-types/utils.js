@@ -111,21 +111,24 @@ export const withRequired = function(type) {
 };
 
 /**
- * Adds `isRequired` and `def` modifiers to an object
+ * Adds `isRequired` and `def` modifiers to an object 为对象添加两个 props 的属性
  *
  * @param {string} name - Type internal name
  * @param {object} obj - Object to enhance
  * @returns {object}
  */
 export const toType = (name, obj) => {
+  // TODO: _vueTypes_name
   Object.defineProperty(obj, '_vueTypes_name', {
     enumerable: false,
     writable: false,
     value: name,
   });
   withRequired(obj);
+  // TODO: 通过  Object.defineProperty 定义上的属性和函数，我记得应该就不会被 for in 等取出来，避免污染对象
+  // 会添加一个 def 方法设置默认值
   withDefault(obj);
-
+  // 校验属性函数
   if (isFunction(obj.validator)) {
     obj.validator = obj.validator.bind(obj);
   }
